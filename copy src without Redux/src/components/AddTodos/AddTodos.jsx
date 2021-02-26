@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes, { shape } from 'prop-types';
-import { connect } from 'react-redux';
-import * as actions from '../../redux/actions';
-// import { addTodo } from '../../redux/actions';
 
-const AddTodos = ({ todos, addTodo }) => {
+export const AddTodos = ({ todos, setTodos }) => {
   const [newTodoTitle, setNewTodoTitle] = useState('');
 
   const addNewTodo = (event) => {
@@ -14,17 +11,21 @@ const AddTodos = ({ todos, addTodo }) => {
       return;
     }
 
-    const id = todos.length === 0 ? 1
-      : todos.reduce((accum, currentTodo) => (
-        accum > currentTodo.id ? accum : currentTodo.id),
-      0) + 1;
+    setTodos(prevTodos => [...prevTodos, {
+      title: newTodoTitle,
+      id: todos.length === 0 ? 1
+        : todos.reduce((accum, currentTodo) => (
+          accum > currentTodo.id ? accum : currentTodo.id),
+        0) + 1,
+      completed: false,
+    }]);
 
-    addTodo(newTodoTitle, id);
     setNewTodoTitle('');
   };
 
   return (
     <form onSubmit={event => addNewTodo(event)}>
+
       <input
         type="text"
         className="new-todo"
@@ -41,12 +42,5 @@ AddTodos.propTypes = {
     id: PropTypes.isRequired,
     completed: PropTypes.bool.isRequired,
   })).isRequired,
-  addTodo: PropTypes.func.isRequired,
+  setTodos: PropTypes.func.isRequired,
 };
-
-const mapStateToProps = state => ({
-  todos: state.todos,
-});
-
-// export default connect(mapStateToProps, ({ addTodo }))(AddTodos);
-export default connect(mapStateToProps, actions)(AddTodos);

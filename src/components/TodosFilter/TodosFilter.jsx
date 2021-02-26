@@ -1,64 +1,76 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames/bind';
+import { connect } from 'react-redux';
+import * as actions from '../../redux/actions';
 
-export const TodosFilter = ({
-  filterForTodos,
-  setFilterForTodos,
-  FILTERS,
-}) => {
-  const selectTodosFilter = (event, value) => {
-    event.preventDefault();
-    setFilterForTodos(value);
-  };
+import {
+  SHOW_ACTIVE,
+  SHOW_ALL,
+  SHOW_COMPLETED,
+} from '../../redux/constants';
 
-  return (
-    <ul className="filters">
-      <li>
-        <a
-          href="#/"
-          className={classNames({
-            selected: filterForTodos === FILTERS.all,
-          })}
-          onClick={event => selectTodosFilter(event, FILTERS.all)}
-        >
-          All
-        </a>
-      </li>
+const TodosFilter = ({
+  todosFilter,
+  showAllTodos,
+  showCompletedTodos,
+  showActiveTodos,
+}) => (
+  <ul className="filters">
+    <li>
+      <a
+        href="#/"
+        className={classNames({
+          selected: todosFilter === SHOW_ALL,
+        })}
+        onClick={showAllTodos}
+      >
+        All
+      </a>
+    </li>
 
-      <li>
-        <a
-          href="#/active"
-          className={classNames({
-            selected: filterForTodos === FILTERS.active,
-          })}
-          onClick={event => selectTodosFilter(event, FILTERS.active)}
-        >
-          Active
-        </a>
-      </li>
+    <li>
+      <a
+        href="#/active"
+        className={classNames({
+          selected: todosFilter === SHOW_ACTIVE,
+        })}
+        onClick={showActiveTodos}
+      >
+        Active
+      </a>
+    </li>
 
-      <li>
-        <a
-          href="#/completed"
-          className={classNames({
-            selected: filterForTodos === FILTERS.completed,
-          })}
-          onClick={event => selectTodosFilter(event, FILTERS.completed)}
-        >
-          Completed
-        </a>
-      </li>
-    </ul>
-  );
-};
+    <li>
+      <a
+        href="#/completed"
+        className={classNames({
+          selected: todosFilter === SHOW_COMPLETED,
+        })}
+        onClick={showCompletedTodos}
+      >
+        Completed
+      </a>
+    </li>
+  </ul>
+);
 
 TodosFilter.propTypes = {
-  filterForTodos: PropTypes.string.isRequired,
-  setFilterForTodos: PropTypes.func.isRequired,
-  FILTERS: PropTypes.shape({
-    all: PropTypes.string.isRequired,
-    active: PropTypes.string.isRequired,
-    completed: PropTypes.string.isRequired,
-  }).isRequired,
+  todosFilter: PropTypes.string.isRequired,
+  showAllTodos: PropTypes.func.isRequired,
+  showCompletedTodos: PropTypes.func.isRequired,
+  showActiveTodos: PropTypes.func.isRequired,
 };
+
+const mapStateToProps = state => ({
+  todos: state.todos,
+  todosFilter: state.filter,
+});
+
+export default connect(mapStateToProps, {
+  showAllTodos: actions.showAllTodos,
+  showCompletedTodos: actions.showCompletedTodos,
+  showActiveTodos: actions.showActiveTodos,
+})(TodosFilter);
+
+// export default connect(mapStateToProps, actions)(TodosFilter);

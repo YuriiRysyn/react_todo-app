@@ -1,30 +1,36 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { connect } from 'react-redux';
+import PropTypes, { shape } from 'prop-types';
 
 import { TodoList } from './TodoList/TodoList';
-import { AddTodos } from './AddTodos/AddTodos';
-import { TodosFilter } from './TodosFilter/TodosFilter';
-import { FILTERS } from '../constants';
+import AddTodos from './AddTodos/AddTodos';
+import TodosFilter from './TodosFilter/TodosFilter';
 
-const App = () => {
-  const [todos, setTodos] = useState([]);
-  const [filterForTodos, setFilterForTodos] = useState(FILTERS.all);
+import {
+  SHOW_ALL,
+  SHOW_COMPLETED,
+} from '../redux/constants';
+
+import * as actions from '../redux/actions';
+
+const App = ({
+  todos,
+  markAllTodos,
+  clearCompletedTodos,
+  getTodosFromLS,
+  todosFilter,
+}) => {
   const [unCompletedTodos, setUnCompletedTodos] = useState('');
   const [completedTodos, setCompletedTodos] = useState('');
-  const [allTodosToogler, setAllTodosToogler] = useState(false);
-
-  useEffect(() => {
-    if (JSON.parse(localStorage.getItem('todos'))) {
-      setTodos(JSON.parse(localStorage.getItem('todos')));
-    }
-  }, []);
+  const [isAllToodosCompleted, setIsAllToodosCompleted] = useState(false);
 
   const filterTodosByCompleteStatus = () => {
-    if (filterForTodos === FILTERS.all) {
+    if (todosFilter === SHOW_ALL) {
       return todos;
     }
 
     return todos.filter(todo => (
-      filterForTodos === FILTERS.completed
+      todosFilter === SHOW_COMPLETED
         ? todo.completed
         : !todo.completed
     ));
@@ -32,48 +38,27 @@ const App = () => {
 
   const filteredTodos = useMemo(
     () => filterTodosByCompleteStatus(),
-    [filterForTodos, todos],
+    [todosFilter, todos],
   );
+
+  useEffect(() => {
+    getTodosFromLS();
+  }, []);
 
   useEffect(() => {
     setUnCompletedTodos(() => todos.filter(todo => !todo.completed));
     setCompletedTodos(() => todos.filter(todo => todo.completed));
-    setAllTodosToogler(() => todos.every(item => item.completed === true));
+
+    setIsAllToodosCompleted(() => todos.every(item => item.completed === true));
 
     localStorage.setItem('todos', JSON.stringify(todos));
   }, [todos]);
-
-  const markAllTodos = useCallback(() => {
-    setTodos(prev => prev
-      .map(todo => ({ ...todo, completed: !allTodosToogler })));
-  }, [allTodosToogler]);
-
-  const removeTodo = (todoId) => {
-    setTodos(todos.filter(todo => todo.id !== todoId));
-  };
-
-  const changeTodo = (todoId, newTodoTitle) => {
-    setTodos(prev => (prev.map((todo) => {
-      if (todo.id === todoId) {
-        return {
-          ...todo,
-          title: newTodoTitle,
-        };
-      }
-
-      return todo;
-    })
-    ));
-  };
 
   return (
     <section className="todoapp">
       <header className="header">
         <h1>todos</h1>
-        <AddTodos
-          todos={todos}
-          setTodos={setTodos}
-        />
+        <AddTodos />
       </header>
       {todos.length !== 0
         ? (
@@ -83,16 +68,13 @@ const App = () => {
                 type="checkbox"
                 id="toggle-all"
                 className="toggle-all"
-                checked={allTodosToogler}
-                onChange={() => markAllTodos()}
+                checked={isAllToodosCompleted}
+                onChange={() => markAllTodos(isAllToodosCompleted)}
               />
               <label htmlFor="toggle-all">Mark all as complete</label>
 
               <TodoList
                 todos={filteredTodos}
-                setTodos={setTodos}
-                removeTodo={removeTodo}
-                changeTodo={changeTodo}
               />
             </section>
 
@@ -103,18 +85,13 @@ const App = () => {
                 left
               </span>
 
-              <TodosFilter
-                todos={todos}
-                filterForTodos={filterForTodos}
-                setFilterForTodos={setFilterForTodos}
-                FILTERS={FILTERS}
-              />
+              <TodosFilter />
               {completedTodos.length > 0
                 ? (
                   <button
                     type="button"
                     className="clear-completed"
-                    onClick={() => setTodos(unCompletedTodos)}
+                    onClick={clearCompletedTodos}
                   >
                     Clear completed
                   </button>
@@ -132,4 +109,20 @@ const App = () => {
   );
 };
 
-export default App;
+App.propTypes = {
+  todos: PropTypes.arrayOf(shape({
+    id: PropTypes.isRequired,
+    completed: PropTypes.bool.isRequired,
+  })).isRequired,
+  markAllTodos: PropTypes.func.isRequired,
+  clearCompletedTodos: PropTypes.func.isRequired,
+  getTodosFromLS: PropTypes.func.isRequired,
+  todosFilter: PropTypes.string.isRequired,
+};
+
+const mapStateToProps = state => ({
+  todos: state.todos,
+  todosFilter: state.filter,
+});
+
+export default connect(mapStateToProps, actions)(App);

@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
-import PropTypes, { shape } from 'prop-types';
+import PropTypes from 'prop-types';
 
 import classNames from 'classnames/bind';
-import { connect } from 'react-redux';
-import * as actions from '../../redux/actions';
 
-const TodoItem = ({
-  todos,
+export const TodoItem = ({
   todo,
+  onToggleToDo,
+  removeTodo,
   changeTodo,
-  toggleTodo,
-  deleteTodo,
 }) => {
   const [editTodo, setEditTodo] = useState(false);
   const [todoTitle, setTodoTitle] = useState(todo.title);
@@ -20,7 +17,7 @@ const TodoItem = ({
       if (todoTitle) {
         changeTodo(todo.id, todoTitle.trim());
       } else {
-        deleteTodo(todo.id);
+        removeTodo(todo.id);
       }
 
       setEditTodo(false);
@@ -36,7 +33,7 @@ const TodoItem = ({
     if (todoTitle) {
       changeTodo(todo.id, todoTitle.trim());
     } else {
-      deleteTodo(todo.id);
+      removeTodo(todo.id);
     }
 
     setEditTodo(false);
@@ -57,7 +54,7 @@ const TodoItem = ({
               type="checkbox"
               className="toggle"
               checked={todo.completed}
-              onChange={() => toggleTodo(todo.id, todos)}
+              onChange={event => onToggleToDo(event, todo.id)}
             />
             <label>
               {todo.title}
@@ -65,7 +62,7 @@ const TodoItem = ({
             <button
               type="button"
               className="destroy"
-              onClick={() => deleteTodo(todo.id)}
+              onClick={() => removeTodo(todo.id)}
             />
           </div>
         )
@@ -86,22 +83,12 @@ const TodoItem = ({
 };
 
 TodoItem.propTypes = {
-  todos: PropTypes.arrayOf(shape({
-    id: PropTypes.isRequired,
-    completed: PropTypes.bool.isRequired,
-  })).isRequired,
   todo: PropTypes.shape({
     id: PropTypes.isRequired,
     completed: PropTypes.bool.isRequired,
     title: PropTypes.string.isRequired,
   }).isRequired,
-  toggleTodo: PropTypes.func.isRequired,
-  deleteTodo: PropTypes.func.isRequired,
+  onToggleToDo: PropTypes.func.isRequired,
+  removeTodo: PropTypes.func.isRequired,
   changeTodo: PropTypes.func.isRequired,
 };
-
-const mapStateToProps = state => ({
-  todos: state.todos,
-});
-
-export default connect(mapStateToProps, actions)(TodoItem);

@@ -1,45 +1,30 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import PropTypes, { shape } from 'prop-types';
-import { TodoItem } from './TodoItem';
 
-export const TodoList = ({
-  todos,
-  setTodos,
-  removeTodo,
-  changeTodo,
-}) => {
-  const onToggleToDo = (event, todoId) => {
-    setTodos(
-      prevTodos => prevTodos.map(todo => (todo.id === todoId
-        ? {
-          ...todo,
-          completed: !todo.completed,
-        }
-        : todo)),
-    );
-  };
+import TodoItem from './TodoItem';
+import * as actions from '../../redux/actions';
 
-  return (
-    <ul className="todo-list">
-      {todos.map(todo => (
-        <TodoItem
-          key={todo.id}
-          todo={todo}
-          onToggleToDo={onToggleToDo}
-          removeTodo={removeTodo}
-          changeTodo={changeTodo}
-        />
-      ))}
-    </ul>
-  );
-};
+export const TodoList = ({ todos }) => (
+  <ul className="todo-list">
+    {todos.map(todo => (
+      <TodoItem
+        key={todo.id}
+        todo={todo}
+      />
+    ))}
+  </ul>
+);
 
 TodoList.propTypes = {
   todos: PropTypes.arrayOf(shape({
     id: PropTypes.isRequired,
     completed: PropTypes.bool.isRequired,
   })).isRequired,
-  setTodos: PropTypes.func.isRequired,
-  removeTodo: PropTypes.func.isRequired,
-  changeTodo: PropTypes.func.isRequired,
 };
+
+const mapStateToProps = state => ({
+  todos: state.todos,
+});
+
+export default connect(mapStateToProps, actions)(TodoList);
